@@ -17,6 +17,7 @@ use std::sync::{
 struct Course {
     id: u64,
     title: String,
+    description: String,
     credits: u8,
 }
 
@@ -28,6 +29,7 @@ struct AppState {
 #[derive(FromForm)]
 struct NewCourseForm {
     title: String,
+    description: String,
     credits: u8,
 }
 
@@ -69,6 +71,7 @@ fn handle_form(course: Form<NewCourseForm>, state: &State<AppState>) -> Result<R
     let new_course = Course {
         id: new_id,
         title: course.title.clone(),
+        description: course.description.clone(),
         credits: course.credits,
     };
 
@@ -106,6 +109,10 @@ fn root(state: &State<AppState>) -> Result<RawHtml<String>, Status> {
     <label for="credits">Credits</label>
     <br>
     <input type="number" id="credits" name="credits" required>
+    <br>
+    <label for="description">Description</label>
+    <br>
+    <input type="text" id="description" name="description" required>
     <br>
     <input type="submit" value="Submit">
     </form>
@@ -145,11 +152,13 @@ fn rocket() -> _ {
             Course {
                 id: 1,
                 title: "Rust Programming".to_owned(),
+                description: "Learn Rust at your own pace".to_owned(),
                 credits: 4,
             },
             Course {
                 id: 2,
                 title: "Linux Basics".to_owned(),
+                description: "The foundation every computer science student should have".to_owned(),
                 credits: 3,
             },
         ]),

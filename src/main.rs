@@ -40,11 +40,16 @@ fn render_courses(c: &[Course]) -> String {
             format!(
                 r#"
                 <tr>
+                    <td><a href="courses/{}">{}</a></td>
                     <td>{}</td>
-                    <td>{}</td>
+                    <td>
+                        <form action="/courses/{}/delete" method="post">
+                        <input type="submit" value="Delete">
+                        </form>
+                    </td>
                 </tr>
         "#,
-                c.title, c.credits
+                c.id, c.title, c.credits, c.id
             )
         })
         .collect();
@@ -56,6 +61,7 @@ fn render_courses(c: &[Course]) -> String {
             <tr>
                 <th>Title</th>
                 <th>Credits</th>
+                <th>Actions</th>
 {}
             </table>
         </div>
@@ -95,6 +101,49 @@ fn get_courses(state: &State<AppState>) -> Result<RawHtml<String>, Status> {
     let content: String = render_courses(&g);
 
     Ok(RawHtml(content))
+}
+
+#[post("/courses/<id>/delete")]
+fn delete_course(id: u64, state: &State<AppState>) -> Result<Redirect, Status> {
+    let mut g = state
+        .courses
+        .lock()
+        .map_err(|_| Status::InternalServerError)?;
+
+    let index = g.iter().position(|c| c.id == id);
+
+    if let Some(i) = index {
+        let _ = (*g).remove(i);
+        Ok(Redirect::to(uri!("/")))
+    } else {
+        Err(Status::NotFound)
+    }
+}
+
+#[get("/courses/<id>")]
+fn get_course(id: u64, state: &State<AppState>) -> Result<Option<RawHtml<String>>, Status> {
+    let g = state
+        .courses
+        .lock()
+        .map_err(|_| Status::InternalServerError)?;
+
+    let course = g.iter().find(|c| c.id == id);
+
+    if let Some(c) = course {
+        let content = format!(
+            r#"
+            <div>
+            <p>{}</p>
+            <p>{} credits</p>
+            <p>{}</p>
+            </div>
+            "#,
+            c.title, c.credits, c.description
+        );
+        Ok(Some(RawHtml(content)))
+    } else {
+        Err(Status::NotFound)
+    }
 }
 
 #[get("/")]
@@ -165,7 +214,8 @@ fn rocket() -> _ {
         next_id: AtomicU64::new(3),
     };
 
-    build()
-        .manage(init)
-        .mount("/", routes![root, handle_form, get_courses])
+    build().manage(init).mount(
+        "/",
+        routes![root, handle_form, get_courses, get_course, delete_course],
+    )
 }

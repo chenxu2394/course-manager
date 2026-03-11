@@ -56,10 +56,12 @@ pub fn render_course(c: &Course) -> String {
             <div>
                 <h1>Course Detail</h1>
                 <a href="/">Back</a>
+                <a href="/update_course/{}">Edit</a>
                 <p>{}: {} credits</p>
                 <p>{}</p>
             </div>
             "#,
+        c.id,
         encode_text(&c.title),
         c.credits,
         encode_text(&c.description)

@@ -136,22 +136,15 @@ pub fn update_course_form(
         .lock()
         .map_err(|_| Status::InternalServerError)?;
 
-    let target = g.iter().position(|c| c.id == id);
+    let target = g.iter_mut().find(|c| c.id == id);
 
-    if let Some(i) = target {
-        let _ = g.remove(i);
+    if let Some(c) = target {
+        c.title = course.title.clone();
+        c.description = course.description.clone();
+        c.credits = course.credits;
     } else {
         return Err(Status::NotFound);
     }
-
-    let new_course = Course {
-        id,
-        title: course.title.clone(),
-        description: course.description.clone(),
-        credits: course.credits,
-    };
-
-    (*g).push(new_course);
 
     Ok(Redirect::to(uri!("/")))
 }

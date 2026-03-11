@@ -33,13 +33,13 @@ pub fn get_courses(state: &State<AppState>) -> Result<RawHtml<String>, Status> {
         .lock()
         .map_err(|_| Status::InternalServerError)?;
 
-    let content: String = render_courses(&g);
+    let content: String = render_page(render_courses(&g));
 
     Ok(RawHtml(content))
 }
 
 #[get("/courses/<id>")]
-pub fn get_course(id: u64, state: &State<AppState>) -> Result<Option<RawHtml<String>>, Status> {
+pub fn get_course(id: u64, state: &State<AppState>) -> Result<RawHtml<String>, Status> {
     let g = state
         .courses
         .lock()
@@ -49,7 +49,7 @@ pub fn get_course(id: u64, state: &State<AppState>) -> Result<Option<RawHtml<Str
 
     if let Some(c) = course {
         let content = render_course(c);
-        Ok(Some(RawHtml(render_page(content))))
+        Ok(RawHtml(render_page(content)))
     } else {
         Err(Status::NotFound)
     }

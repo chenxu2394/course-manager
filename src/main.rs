@@ -40,7 +40,7 @@ fn render_courses(c: &[Course]) -> String {
             format!(
                 r#"
                 <tr>
-                    <td><a href="courses/{}">{}</a></td>
+                    <td><a href="/courses/{}">{}</a></td>
                     <td>{}</td>
                     <td>
                         <form action="/courses/{}/delete" method="post">

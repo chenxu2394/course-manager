@@ -1,4 +1,5 @@
 use super::models::Course;
+use html_escape::encode_double_quoted_attribute;
 use html_escape::encode_text;
 
 pub fn render_courses(c: &[Course]) -> String {
@@ -97,7 +98,11 @@ pub fn render_course_form(
         </div>
         </form>
     "#,
-        page_title, form_action, current_title, current_credits, current_description
+        page_title,
+        form_action,
+        encode_double_quoted_attribute(current_title),
+        current_credits,
+        encode_double_quoted_attribute(current_description)
     )
 }
 

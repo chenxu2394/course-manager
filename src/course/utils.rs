@@ -35,7 +35,7 @@ pub fn render_courses(c: &[Course]) -> String {
     format!(
         r#"
         <h1>List of Courses</h1>
-        <a href="/add_course"><button>Add a course</button></a>
+        <a class="action-button" href="/add_course">Add a course</a>
         <p></p>
         <div>
             <table>

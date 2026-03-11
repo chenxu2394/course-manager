@@ -55,7 +55,7 @@ pub fn render_course(c: &Course) -> String {
         r#"
             <div>
                 <h1>Course Detail</h1>
-                <a href="/">Back</a>
+                <a href="/">Home</a>
                 <a href="/update_course/{}">Edit</a>
                 <p>{}: {} credits</p>
                 <p>{}</p>
@@ -78,7 +78,7 @@ pub fn render_course_form(
     format!(
         r#"
         <h1>{}</h1>
-        <a href="/">Back</a>
+        <a href="/">Home</a>
         <form action="/{}" method="post">
         <label for="title">Course Title</label>
         <br>

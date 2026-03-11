@@ -1,4 +1,4 @@
-use rocket::{build, launch, routes};
+use rocket::{build, fs::FileServer, launch, routes};
 
 use std::sync::{Mutex, atomic::AtomicU64};
 
@@ -27,15 +27,20 @@ fn rocket() -> _ {
         next_id: AtomicU64::new(3),
     };
 
-    build().manage(init).mount(
-        "/",
-        routes![
-            root,
-            handle_form,
-            get_courses,
-            get_course,
-            delete_course,
-            add_course
-        ],
-    )
+    build()
+        .manage(init)
+        .mount(
+            "/",
+            routes![
+                root,
+                add_course_form,
+                get_courses,
+                get_course,
+                delete_course,
+                add_course,
+                update_course,
+                update_course_form
+            ],
+        )
+        .mount("/static", FileServer::from("static"))
 }

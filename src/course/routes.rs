@@ -14,8 +14,72 @@ use super::utils::*;
 
 use std::sync::atomic::Ordering;
 
-#[post("/submit", data = "<course>")]
-pub fn handle_form(
+#[get("/")]
+pub fn root(state: &State<AppState>) -> Result<RawHtml<String>, Status> {
+    let g = state
+        .courses
+        .lock()
+        .map_err(|_| Status::InternalServerError)?;
+
+    let course_table = render_courses(&g);
+
+    Ok(RawHtml(render_page(course_table)))
+}
+
+#[get("/courses")]
+pub fn get_courses(state: &State<AppState>) -> Result<RawHtml<String>, Status> {
+    let g = state
+        .courses
+        .lock()
+        .map_err(|_| Status::InternalServerError)?;
+
+    let content: String = render_courses(&g);
+
+    Ok(RawHtml(content))
+}
+
+#[get("/courses/<id>")]
+pub fn get_course(id: u64, state: &State<AppState>) -> Result<Option<RawHtml<String>>, Status> {
+    let g = state
+        .courses
+        .lock()
+        .map_err(|_| Status::InternalServerError)?;
+
+    let course = g.iter().find(|c| c.id == id);
+
+    if let Some(c) = course {
+        let content = render_course(c);
+        Ok(Some(RawHtml(render_page(content))))
+    } else {
+        Err(Status::NotFound)
+    }
+}
+
+#[post("/courses/<id>/delete")]
+pub fn delete_course(id: u64, state: &State<AppState>) -> Result<Redirect, Status> {
+    let mut g = state
+        .courses
+        .lock()
+        .map_err(|_| Status::InternalServerError)?;
+
+    let index = g.iter().position(|c| c.id == id);
+
+    if let Some(i) = index {
+        let _ = (*g).remove(i);
+        Ok(Redirect::to(uri!("/")))
+    } else {
+        Err(Status::NotFound)
+    }
+}
+
+#[get("/add_course")]
+pub fn add_course() -> Result<RawHtml<String>, Status> {
+    let content = render_page(render_course_form("Add a course", "add_course", "", "", 0));
+    Ok(RawHtml(content))
+}
+
+#[post("/add_course", data = "<course>")]
+pub fn add_course_form(
     course: Form<NewCourseForm>,
     state: &State<AppState>,
 ) -> Result<Redirect, Status> {
@@ -38,37 +102,8 @@ pub fn handle_form(
     Ok(Redirect::to(uri!("/")))
 }
 
-#[get("/courses")]
-pub fn get_courses(state: &State<AppState>) -> Result<RawHtml<String>, Status> {
-    let g = state
-        .courses
-        .lock()
-        .map_err(|_| Status::InternalServerError)?;
-
-    let content: String = render_courses(&g);
-
-    Ok(RawHtml(content))
-}
-
-#[post("/courses/<id>/delete")]
-pub fn delete_course(id: u64, state: &State<AppState>) -> Result<Redirect, Status> {
-    let mut g = state
-        .courses
-        .lock()
-        .map_err(|_| Status::InternalServerError)?;
-
-    let index = g.iter().position(|c| c.id == id);
-
-    if let Some(i) = index {
-        let _ = (*g).remove(i);
-        Ok(Redirect::to(uri!("/")))
-    } else {
-        Err(Status::NotFound)
-    }
-}
-
-#[get("/courses/<id>")]
-pub fn get_course(id: u64, state: &State<AppState>) -> Result<Option<RawHtml<String>>, Status> {
+#[get("/update_course/<id>")]
+pub fn update_course(id: u64, state: &State<AppState>) -> Result<RawHtml<String>, Status> {
     let g = state
         .courses
         .lock()
@@ -77,27 +112,46 @@ pub fn get_course(id: u64, state: &State<AppState>) -> Result<Option<RawHtml<Str
     let course = g.iter().find(|c| c.id == id);
 
     if let Some(c) = course {
-        let content = render_course(c);
-        Ok(Some(RawHtml(content)))
+        let content = render_course_form(
+            "Edit a course",
+            format!("update_course/{}", id).as_str(),
+            &c.title,
+            &c.description,
+            c.credits,
+        );
+        Ok(RawHtml(render_page(content)))
     } else {
         Err(Status::NotFound)
     }
 }
 
-#[get("/")]
-pub fn root(state: &State<AppState>) -> Result<RawHtml<String>, Status> {
-    let g = state
+#[post("/update_course/<id>", data = "<course>")]
+pub fn update_course_form(
+    id: u64,
+    course: Form<NewCourseForm>,
+    state: &State<AppState>,
+) -> Result<Redirect, Status> {
+    let mut g = state
         .courses
         .lock()
         .map_err(|_| Status::InternalServerError)?;
 
-    let course_table = render_courses(&g);
+    let target = g.iter().position(|c| c.id == id);
 
-    Ok(RawHtml(render_root(course_table)))
-}
+    if let Some(i) = target {
+        let _ = g.remove(i);
+    } else {
+        return Err(Status::NotFound);
+    }
 
-#[get("/add_course")]
-pub fn add_course() -> Result<RawHtml<String>, Status> {
-    let content = render_add_a_course();
-    Ok(RawHtml(content))
+    let new_course = Course {
+        id,
+        title: course.title.clone(),
+        description: course.description.clone(),
+        credits: course.credits,
+    };
+
+    (*g).push(new_course);
+
+    Ok(Redirect::to(uri!("/")))
 }

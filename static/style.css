@@ -1,0 +1,42 @@
+.actions {
+  /* margin-top: 12px; */
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.action-button {
+  display: inline-block;
+  padding: 2px 6px;
+  border: 1px solid #767676;
+  border-radius: 2px;
+  background: #efefef;
+  color: black;
+  text-decoration: none;
+  font: 13px sans-serif;
+  line-height: 1.2;
+  text-align: center;
+  cursor: default;
+}
+
+.action-button:hover {
+  background: #e5e5e5;
+}
+
+.action-button:active {
+  background: #dcdcdc;
+}
+
+table,
+th,
+td {
+  border: 1px solid black;
+}
+
+#submit {
+  margin-top: 12px;
+}
+
+form:not(.inline-form) {
+  margin-top: 12px;
+}

@@ -11,15 +11,21 @@ pub fn render_courses(c: &[Course]) -> String {
                     <td><a href="/courses/{}">{}</a></td>
                     <td>{}</td>
                     <td>
-                        <form action="/courses/{}/delete" method="post">
-                        <input type="submit" value="Delete">
-                        </form>
+                        <div class="actions">
+                            <div class="actions">
+                                <a class="action-button" href="/update_course/{}">Edit</a>
+                                <form class="inline-form" action="/courses/{}/delete" method="post">
+                                    <button class="action-button" type="submit">Delete</button>
+                                </form>
+                            </div>
+                        </div>
                     </td>
                 </tr>
         "#,
                 c.id,
                 encode_text(&c.title),
                 c.credits,
+                c.id,
                 c.id
             )
         })
@@ -27,6 +33,9 @@ pub fn render_courses(c: &[Course]) -> String {
 
     format!(
         r#"
+        <h1>List of Courses</h1>
+        <a href="/add_course"><button>Add a course</button></a>
+        <p></p>
         <div>
             <table>
             <tr>
@@ -45,9 +54,10 @@ pub fn render_course(c: &Course) -> String {
     format!(
         r#"
             <div>
-            <p>{}</p>
-            <p>{} credits</p>
-            <p>{}</p>
+                <h1>Course Detail</h1>
+                <a href="/">Back</a>
+                <p>{}: {} credits</p>
+                <p>{}</p>
             </div>
             "#,
         encode_text(&c.title),
@@ -56,46 +66,52 @@ pub fn render_course(c: &Course) -> String {
     )
 }
 
-pub fn render_add_a_course() -> String {
-    (r#"
-    <h1>Add a course</h1>
-    <form action="/submit" method="post">
-    <label for="title">Course Title</label>
-    <br>
-    <input type="text" id="title" name="title" required>
-    <br>
-    <label for="credits">Credits</label>
-    <br>
-    <input type="number" id="credits" name="credits" required>
-    <br>
-    <label for="description">Description</label>
-    <br>
-    <input type="text" id="description" name="description" required>
-    <p></p>
-    <input type="submit" value="Submit">
-    </form>
-    "#)
-    .to_owned()
+pub fn render_course_form(
+    page_title: &str,
+    form_action: &str,
+    current_title: &str,
+    current_description: &str,
+    current_credits: u8,
+) -> String {
+    format!(
+        r#"
+        <h1>{}</h1>
+        <a href="/">Back</a>
+        <form action="/{}" method="post">
+        <label for="title">Course Title</label>
+        <br>
+        <input type="text" id="title" name="title" value="{}" required>
+        <br>
+        <label for="credits">Credits</label>
+        <br>
+        <input type="number" id="credits" name="credits" value="{}" required>
+        <br>
+        <label for="description">Description</label>
+        <br>
+        <input type="text" id="description" name="description" value="{}" required>
+        <div class="actions" id="submit">
+            <input type="submit" value="Submit">
+            <a href="/">Cancel</a>
+        </div>
+        </form>
+    "#,
+        page_title, form_action, current_title, current_credits, current_description
+    )
 }
 
-pub fn render_root(course_table: String) -> String {
+pub fn render_page(body: String) -> String {
     format!(
         r#"
     <!DOCTYPE html>
     <html>
-    <style>
-        table, th, td {{
-            border:1px solid black;
-        }}
-    </style>
+    <head>
+        <link rel="stylesheet" href="/static/style.css">
+    </head>
     <body>
-        <h1>List of Courses</h1>
-        <a href="/add_course"><button>Add a course</button></a>
-        <p></p>
         {}
     </body>
     </html>
     "#,
-        course_table
+        body
     )
 }

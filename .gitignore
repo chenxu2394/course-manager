@@ -1,7 +1,2 @@
-*.aux
-*.bbl
-*.blg
-*.log
-*.out
-*.toc
-*.synctex.gz
+/target
+.DS_Store
